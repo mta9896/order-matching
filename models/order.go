@@ -1,8 +1,5 @@
 package models
 
-import (
-)
-
 type OrderType string
 
 const Buy OrderType = "BUY"

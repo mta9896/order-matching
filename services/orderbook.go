@@ -105,3 +105,62 @@ func (ob *OrderBook) PlaceOrder(order *models.Order) (matchedOrders []models.Ord
 	return matchedOrders
 }
 
+func (ob *OrderBook) GetOrderBook(limit int) []models.OrderBookEntry {
+	var sellOrders, buyOrders []models.OrderBookEntry
+
+	startIndex := limit
+	if limit >= ob.SellPricesHeap.Len() {
+		startIndex = ob.SellPricesHeap.Len() - 1
+	}
+
+	for i := startIndex; i >= 0; i-- {
+		price := ob.SellPricesHeap[i]
+		liquidity := 0.0
+		for _, order := range ob.SellOrders[price] {
+			liquidity += order.Amount
+		}
+		
+		sellOrders = append(sellOrders, models.OrderBookEntry{
+			Price: price,
+			Liquidity: liquidity,
+			Type: models.Sell,
+		})
+	}
+
+	for i := 0; i < ob.BuyPricesHeap.Len() && i < limit; i++ {
+		price := ob.BuyPricesHeap[i]
+		liquidity := 0.0
+		for _, order := range ob.BuyOrders[price] {
+			liquidity += order.Amount
+		}
+		
+		buyOrders = append(buyOrders, models.OrderBookEntry{
+			Price: price,
+			Liquidity: liquidity,
+			Type: models.Buy,
+		})
+	}
+
+	return append(sellOrders, buyOrders...)
+}
+
+func (ob *OrderBook) GetOrderList(page int, pageSize int) []models.Order {
+	var allOrders []models.Order
+	for _, orders := range ob.BuyOrders {
+		allOrders = append(allOrders, orders...)
+	}
+	for _, orders := range ob.SellOrders {
+		allOrders = append(allOrders, orders...)
+	}
+
+	totalOrders := len(allOrders)
+	
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if end > totalOrders {
+		end = totalOrders
+	}
+
+	return allOrders[start:end]
+}
+

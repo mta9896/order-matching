@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"bytes"
+	"container/heap"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"order-matching/models"
+	"order-matching/services"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +29,7 @@ func TestCreateOrder(t *testing.T) {
 		}`
 
 		engine := gin.New()
-		engine.POST("/api/orders", CreateOrder)
+		engine.POST("/api/orders", CreateOrder(services.NewOrderBook()))
 
 		req, _ := http.NewRequest(http.MethodPost, "/api/orders", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -48,7 +50,7 @@ func TestCreateOrder(t *testing.T) {
 		}`
 
 		engine := gin.New()
-		engine.POST("/api/orders", CreateOrder)
+		engine.POST("/api/orders", CreateOrder(services.NewOrderBook()))
 
 		req, _ := http.NewRequest(http.MethodPost, "/api/orders", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -73,7 +75,7 @@ func TestCreateOrder(t *testing.T) {
 		}`
 
 		engine := gin.New()
-		engine.POST("/api/orders", CreateOrder)
+		engine.POST("/api/orders", CreateOrder(services.NewOrderBook()))
 
 		req, _ := http.NewRequest(http.MethodPost, "/api/orders", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -98,7 +100,7 @@ func TestCreateOrder(t *testing.T) {
 		}`
 
 		engine := gin.New()
-		engine.POST("/api/orders", CreateOrder)
+		engine.POST("/api/orders", CreateOrder(services.NewOrderBook()))
 
 		req, _ := http.NewRequest(http.MethodPost, "/api/orders", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -130,7 +132,7 @@ func TestCreateOrder(t *testing.T) {
 		}`
 
 		engine := gin.New()
-		engine.POST("/api/orders", CreateOrder)
+		engine.POST("/api/orders", CreateOrder(services.NewOrderBook()))
 
 		req, _ := http.NewRequest(http.MethodPost, "/api/orders", bytes.NewBufferString(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -146,6 +148,111 @@ func TestCreateOrder(t *testing.T) {
 		assert.Equal(t, "success", response.Message)
 		assert.Equal(t, []models.Order{}, response.Data)
 	})
+}
 
+func TestOrderBook(t *testing.T) {
+	t.Parallel()
+	t.Run("It returns orderbook correctly", func(t *testing.T) {
+		t.Parallel()
+		orderBook := initOrderBook()
 
+		engine := gin.New()
+		engine.GET("/api/orderbook", GetOrderBook(orderBook))
+
+		req, _ := http.NewRequest(http.MethodGet, "/api/orderbook", nil)
+		req.Header.Set("Content-Type", "application/json")
+
+		recorder := httptest.NewRecorder()
+		engine.ServeHTTP(recorder, req)
+
+		assert.Equal(t, http.StatusOK, recorder.Code)
+		
+		response := new(Response)
+		json.Unmarshal(recorder.Body.Bytes(), response)
+		assert.Equal(t, 4, len(response.Data))
+	})
+}
+
+func TestOrderList(t *testing.T) {
+	t.Parallel()
+	t.Run("It returns order list correctly", func(t *testing.T) {
+		t.Parallel()
+		orderBook := initOrderBook()
+
+		engine := gin.New()
+		engine.GET("/api/orders", GetOrdersList(orderBook))
+
+		req, _ := http.NewRequest(http.MethodGet, "/api/orders", nil)
+		req.Header.Set("Content-Type", "application/json")
+
+		recorder := httptest.NewRecorder()
+		engine.ServeHTTP(recorder, req)
+
+		assert.Equal(t, http.StatusOK, recorder.Code)
+		
+		response := new(Response)
+		json.Unmarshal(recorder.Body.Bytes(), response)
+		assert.Equal(t, 6, len(response.Data))
+	})
+}
+
+func initOrderBook() *services.OrderBook {
+	orderBook := services.NewOrderBook()
+	orderBook.SellOrders = map[float64][]models.Order{
+		120.0: {
+			{
+				ID:     "550e8400-e29b-41d4-a716-666655442000",
+				Action: models.Sell,
+				Price:  120.0,
+				Amount: 2.0,
+			},
+		},
+		100.0: {
+			{
+				ID:     "550e8400-e29b-41d4-a716-77755442000",
+				Action: models.Sell,
+				Price:  100.0,
+				Amount: 2.0,
+			},
+			{
+				ID:     "550e8400-e29b-41d4-a716-77755442001",
+				Action: models.Sell,
+				Price:  100.0,
+				Amount: 2.0,
+			},
+			{
+				ID:     "550e8400-e29b-41d4-a716-77755442002",
+				Action: models.Sell,
+				Price:  100.0,
+				Amount: 3.0,
+			},
+		},
+	}
+
+	heap.Push(&orderBook.SellPricesHeap, 120.0)
+	heap.Push(&orderBook.SellPricesHeap, 100.0)
+
+	orderBook.BuyOrders = map[float64][]models.Order{
+		80.0: {
+			{
+				ID:     "550e8400-e29b-41d4-a716-666655442000",
+				Action: models.Buy,
+				Price:  80.0,
+				Amount: 2.0,
+			},
+		},
+		100.0: {
+			{
+				ID:     "550e8400-e29b-41d4-a716-77755442000",
+				Action: models.Buy,
+				Price:  100.0,
+				Amount: 2.0,
+			},
+		},
+	}
+
+	heap.Push(&orderBook.BuyPricesHeap, 80.0)
+	heap.Push(&orderBook.BuyPricesHeap, 100.0)
+
+	return orderBook
 }
