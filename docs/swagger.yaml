@@ -1,0 +1,135 @@
+basePath: /api
+definitions:
+  handlers.OrderBookResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.OrderBookEntry'
+        type: array
+    type: object
+  handlers.Response:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Order'
+        type: array
+      message:
+        type: string
+    type: object
+  models.Order:
+    properties:
+      action:
+        allOf:
+        - $ref: '#/definitions/models.OrderType'
+        enum:
+        - BUY
+        - SELL
+      amount:
+        type: number
+      price:
+        type: number
+      uuid:
+        type: string
+    required:
+    - action
+    - amount
+    - price
+    - uuid
+    type: object
+  models.OrderBookEntry:
+    properties:
+      liquidity:
+        type: number
+      price:
+        type: number
+      type:
+        $ref: '#/definitions/models.OrderType'
+    type: object
+  models.OrderType:
+    enum:
+    - BUY
+    - SELL
+    type: string
+    x-enum-varnames:
+    - Buy
+    - Sell
+host: localhost:8080
+info:
+  contact: {}
+  description: This is an API for an order matching system.
+  title: Order Matching API
+  version: "1.0"
+paths:
+  /api/orderbook:
+    get:
+      description: Returns a list of buy and sell orders with their price and liquidity.
+      parameters:
+      - description: Number of orders to retrieve (default is 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved order book
+          schema:
+            $ref: '#/definitions/handlers.OrderBookResponse'
+      summary: Get order book
+      tags:
+      - Orders
+  /api/orders:
+    get:
+      description: Returns a paginated list of all orders placed in the order book.
+      parameters:
+      - description: Page number (default is 1)
+        in: query
+        name: page
+        type: integer
+      - description: Number of orders per page (default is 10)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved list of orders
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Get list of orders
+      tags:
+      - Orders
+    post:
+      consumes:
+      - application/json
+      description: Places a buy or sell order in the order book and returns matched
+        orders if available.
+      parameters:
+      - description: Order details
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/models.Order'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order successfully placed
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "409":
+          description: Duplicate order detected
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "422":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Create a new order
+      tags:
+      - Orders
+schemes:
+- http
+swagger: "2.0"

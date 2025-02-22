@@ -25,6 +25,17 @@ type OrderBookResponse struct {
 	Data []models.OrderBookEntry `json:"data"`
 }
 
+// CreateOrder places a new order in the order book
+//	@Summary		Create a new order
+//	@Description	Places a buy or sell order in the order book and returns matched orders if available.
+//	@Tags			Orders
+//	@Accept			json
+//	@Produce		json
+//	@Param			order	body		models.Order	true	"Order details"	Example({ "uuid": "550e8400-e29b-41d4-a716-446655440000", "action": "BUY", "price": 100.5, "amount": 2 })
+//	@Success		200		{object}	Response		"Order successfully placed"
+//	@Failure		422		{object}	Response		"Invalid request payload"
+//	@Failure		409		{object}	Response		"Duplicate order detected"
+//	@Router			/api/orders [post]
 func CreateOrder(orderBook *services.OrderBook) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var order models.Order
@@ -62,6 +73,30 @@ func CreateOrder(orderBook *services.OrderBook) gin.HandlerFunc {
 	}
 }
 
+// GetOrderBook retrieves the current state of the order book.
+//
+//	@Summary		Get order book
+//	@Description	Returns a list of buy and sell orders with their price and liquidity.
+//	@Tags			Orders
+//	@Produce		json
+//	@Param			limit	query		int	false	"Number of orders to retrieve (default is 10)"
+//	@Success		200		{object}	OrderBookResponse	"Successfully retrieved order book"
+//	@Router			/api/orderbook [get]
+//	@Example		{json} Success-Response
+//	{
+//	  "data": [
+//	    {
+//	      "price": 100.0,
+//	      "liquidity": 5.0,
+//	      "type": "BUY"
+//	    },
+//	    {
+//	      "price": 99.5,
+//	      "liquidity": 3.0,
+//	      "type": "SELL"
+//	    }
+//	  ]
+//	}
 func GetOrderBook(orderBook *services.OrderBook) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
@@ -77,6 +112,34 @@ func GetOrderBook(orderBook *services.OrderBook) gin.HandlerFunc {
 	}
 }
 
+// GetOrdersList retrieves a paginated list of all orders.
+//
+//	@Summary		Get list of orders
+//	@Description	Returns a paginated list of all orders placed in the order book.
+//	@Tags			Orders
+//	@Produce		json
+//	@Param			page		query	int	false	"Page number (default is 1)"
+//	@Param			page_size	query	int	false	"Number of orders per page (default is 10)"
+//	@Success		200			{object}	Response	"Successfully retrieved list of orders"
+//	@Router			/api/orders [get]
+//	@Example		{json} Success-Response
+//	{
+//	  "message": "success",
+//	  "data": [
+//	    {
+//	      "uuid": "550e8400-e29b-41d4-a716-446655440000",
+//	      "action": "BUY",
+//	      "price": 100.0,
+//	      "amount": 2.5
+//	    },
+//	    {
+//	      "uuid": "550e8400-e29b-41d4-a716-446655440001",
+//	      "action": "SELL",
+//	      "price": 99.5,
+//	      "amount": 1.0
+//	    }
+//	  ]
+//	}
 func GetOrdersList(orderBook *services.OrderBook) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
