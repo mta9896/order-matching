@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/orderbook": {
+        "/orderbook": {
             "get": {
                 "description": "Returns a list of buy and sell orders with their price and liquidity.",
                 "produces": [
@@ -43,7 +43,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/orders": {
+        "/orders": {
             "get": {
                 "description": "Returns a paginated list of all orders placed in the order book.",
                 "produces": [

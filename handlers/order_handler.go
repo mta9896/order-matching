@@ -35,7 +35,7 @@ type OrderBookResponse struct {
 //	@Success		200		{object}	Response		"Order successfully placed"
 //	@Failure		422		{object}	Response		"Invalid request payload"
 //	@Failure		409		{object}	Response		"Duplicate order detected"
-//	@Router			/api/orders [post]
+//	@Router			/orders [post]
 func CreateOrder(orderBook *services.OrderBook) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var order models.Order
@@ -49,7 +49,7 @@ func CreateOrder(orderBook *services.OrderBook) gin.HandlerFunc {
 		}
 
 		mutex.Lock()
-		defer mutex.Unlock() // handle this mutex in the service too
+		defer mutex.Unlock()
 
 		if _, exists := existingUUIDs[order.ID]; exists {
 			c.JSON(http.StatusConflict, Response{
@@ -81,7 +81,7 @@ func CreateOrder(orderBook *services.OrderBook) gin.HandlerFunc {
 //	@Produce		json
 //	@Param			limit	query		int	false	"Number of orders to retrieve (default is 10)"
 //	@Success		200		{object}	OrderBookResponse	"Successfully retrieved order book"
-//	@Router			/api/orderbook [get]
+//	@Router			/orderbook [get]
 //	@Example		{json} Success-Response
 //	{
 //	  "data": [
@@ -121,7 +121,7 @@ func GetOrderBook(orderBook *services.OrderBook) gin.HandlerFunc {
 //	@Param			page		query	int	false	"Page number (default is 1)"
 //	@Param			page_size	query	int	false	"Number of orders per page (default is 10)"
 //	@Success		200			{object}	Response	"Successfully retrieved list of orders"
-//	@Router			/api/orders [get]
+//	@Router			/orders [get]
 //	@Example		{json} Success-Response
 //	{
 //	  "message": "success",
@@ -160,8 +160,4 @@ func GetOrdersList(orderBook *services.OrderBook) gin.HandlerFunc {
 			Data: orders,
 		})
 	}
-}
-
-func GetOrderByID(c *gin.Context) {
-
 }

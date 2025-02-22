@@ -12,7 +12,7 @@
     "host": "localhost:8080",
     "basePath": "/api",
     "paths": {
-        "/api/orderbook": {
+        "/orderbook": {
             "get": {
                 "description": "Returns a list of buy and sell orders with their price and liquidity.",
                 "produces": [
@@ -40,7 +40,7 @@
                 }
             }
         },
-        "/api/orders": {
+        "/orders": {
             "get": {
                 "description": "Returns a paginated list of all orders placed in the order book.",
                 "produces": [

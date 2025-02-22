@@ -60,7 +60,7 @@ info:
   title: Order Matching API
   version: "1.0"
 paths:
-  /api/orderbook:
+  /orderbook:
     get:
       description: Returns a list of buy and sell orders with their price and liquidity.
       parameters:
@@ -78,7 +78,7 @@ paths:
       summary: Get order book
       tags:
       - Orders
-  /api/orders:
+  /orders:
     get:
       description: Returns a paginated list of all orders placed in the order book.
       parameters:

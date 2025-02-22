@@ -93,7 +93,7 @@ func TestCreateOrder(t *testing.T) {
 	t.Run("It returns 409 error if the order is duplicate", func(t *testing.T) {
 		t.Parallel()
 		body := `{
-			"uuid": "550e8400-e29b-41d4-a716-446655440000",
+			"uuid": "550e8400-e29b-41d4-a716-446655441000",
 			"action": "BUY",
 			"price": 10.0,
 			"amount": 12.0
@@ -125,8 +125,35 @@ func TestCreateOrder(t *testing.T) {
 	t.Run("It returns 200 for buy order submission when there are no sell orders", func(t *testing.T) {
 		t.Parallel()
 		body := `{
-			"uuid": "550e8400-e29b-41d4-a716-446655440000",
+			"uuid": "550e8400-e29b-41d4-a716-646655440000",
 			"action": "BUY",
+			"price": 10.0,
+			"amount": 12.0
+		}`
+
+		engine := gin.New()
+		engine.POST("/api/orders", CreateOrder(services.NewOrderBook()))
+
+		req, _ := http.NewRequest(http.MethodPost, "/api/orders", bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		recorder := httptest.NewRecorder()
+		engine.ServeHTTP(recorder, req)
+
+		assert.Equal(t, http.StatusOK, recorder.Code)
+
+		response := new(Response)
+		err := json.Unmarshal(recorder.Body.Bytes(), response)
+		assert.Nil(t, err)
+		assert.Equal(t, "success", response.Message)
+		assert.Equal(t, []models.Order{}, response.Data)
+	})
+
+	t.Run("It returns 200 for sell order submission when there are no buy orders", func(t *testing.T) {
+		t.Parallel()
+		body := `{
+			"uuid": "550e8400-e29b-41d4-a716-646655440300",
+			"action": "SELL",
 			"price": 10.0,
 			"amount": 12.0
 		}`
