@@ -25,10 +25,13 @@ definitions:
         - BUY
         - SELL
       amount:
+        example: 10
         type: number
       price:
+        example: 100
         type: number
       uuid:
+        example: 550e8400-e29b-41d4-a716-646655440000
         type: string
     required:
     - action
